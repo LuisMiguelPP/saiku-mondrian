@@ -475,10 +475,18 @@ public class RolapSchema extends OlapElementBase implements Schema {
     }
 
     public Role lookupRole(final String role) {
+        LOGGER.info("lookupRole: " + role);
+  
         final RoleFactory roleFactory = mapNameToRole.get(role);
         if (roleFactory instanceof ConstantRoleFactory) {
+            LOGGER.info("instanceof ConstantRoleFactory " + role);
             return ((ConstantRoleFactory) roleFactory).role;
+        } else 
+        if (roleFactory instanceof UnionRoleFactory) {
+            LOGGER.info("instanceof UnionRoleFactory " + role);
+            return ((UnionRoleFactory) roleFactory).role;
         }
+
         return null;
     }
 
@@ -699,7 +707,9 @@ public class RolapSchema extends OlapElementBase implements Schema {
         Map<String, RoleFactory> roles,
         RoleFactory defaultRole)
     {
+        LOGGER.info("registering Roles ");
         for (Map.Entry<String, RoleFactory> entry : roles.entrySet()) {
+            LOGGER.info("key: " + entry.getKey());
             mapNameToRole.put(entry.getKey(), entry.getValue());
         }
 
@@ -3036,8 +3046,11 @@ public class RolapSchema extends OlapElementBase implements Schema {
     static class UnionRoleFactory implements RoleFactory {
         private final List<RoleFactory> factories;
 
+        private final Role role;
+
         public UnionRoleFactory(List<RoleFactory> factories) {
             this.factories = factories;
+            this.role = create(null);
         }
 
         public Role create(final Map<String, Object> context) {
